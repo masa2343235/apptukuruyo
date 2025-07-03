@@ -1,0 +1,722 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>入出金管理アプリ</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: #333;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .header {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 30px;
+            margin-bottom: 30px;
+            box-shadow: 0 8px 32px rgba(31, 38, 135, 0.37);
+            border: 1px solid rgba(255, 255, 255, 0.18);
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            color: #667eea;
+            text-align: center;
+            margin-bottom: 10px;
+            font-weight: 700;
+        }
+
+        .summary {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-top: 20px;
+        }
+
+        .summary-card {
+            background: rgba(255, 255, 255, 0.9);
+            padding: 20px;
+            border-radius: 15px;
+            text-align: center;
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+        }
+
+        .summary-card h3 {
+            color: #666;
+            margin-bottom: 10px;
+            font-size: 0.9em;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .summary-card .amount {
+            font-size: 1.8em;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+
+        .income { color: #4CAF50; }
+        .expense { color: #f44336; }
+        .balance { color: #2196F3; }
+
+        .nav-buttons {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .nav-btn {
+            background: rgba(255, 255, 255, 0.95);
+            border: none;
+            padding: 25px;
+            border-radius: 20px;
+            font-size: 1.1em;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.18);
+            box-shadow: 0 8px 32px rgba(31, 38, 135, 0.37);
+        }
+
+        .nav-btn:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 12px 40px rgba(31, 38, 135, 0.5);
+        }
+
+        .content {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            padding: 30px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.18);
+            box-shadow: 0 8px 32px rgba(31, 38, 135, 0.37);
+        }
+
+        .screen {
+            display: none;
+        }
+
+        .screen.active {
+            display: block;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #555;
+        }
+
+        .form-group input,
+        .form-group select,
+        .form-group textarea {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            font-size: 16px;
+            transition: border-color 0.3s ease;
+        }
+
+        .form-group input:focus,
+        .form-group select:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-right: 10px;
+            margin-bottom: 10px;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-secondary {
+            background: #6c757d;
+        }
+
+        .btn-danger {
+            background: #dc3545;
+        }
+
+        .btn-success {
+            background: #28a745;
+        }
+
+        .type-toggle {
+            display: flex;
+            margin-bottom: 20px;
+        }
+
+        .type-toggle button {
+            flex: 1;
+            padding: 15px;
+            border: 2px solid #e0e0e0;
+            background: white;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .type-toggle button.active {
+            background: #667eea;
+            color: white;
+            border-color: #667eea;
+        }
+
+        .type-toggle button:first-child {
+            border-radius: 10px 0 0 10px;
+        }
+
+        .type-toggle button:last-child {
+            border-radius: 0 10px 10px 0;
+        }
+
+        .category-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .category-item {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border: 1px solid #e0e0e0;
+        }
+
+        .transaction-list {
+            margin-top: 20px;
+        }
+
+        .transaction-item {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-left: 4px solid #667eea;
+        }
+
+        .transaction-item.income {
+            border-left-color: #4CAF50;
+        }
+
+        .transaction-item.expense {
+            border-left-color: #f44336;
+        }
+
+        .transaction-info {
+            flex: 1;
+        }
+
+        .transaction-amount {
+            font-weight: bold;
+            font-size: 1.2em;
+        }
+
+        .transaction-date {
+            color: #666;
+            font-size: 0.9em;
+        }
+
+        .filters {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 10px;
+        }
+
+        .back-btn {
+            background: #6c757d;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin-bottom: 20px;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 10px;
+            }
+
+            .header h1 {
+                font-size: 2em;
+            }
+
+            .summary {
+                grid-template-columns: 1fr;
+            }
+
+            .nav-buttons {
+                grid-template-columns: 1fr;
+            }
+
+            .filters {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>💰 入出金管理アプリ</h1>
+            <div class="summary">
+                <div class="summary-card">
+                    <h3>今月の収入</h3>
+                    <div class="amount income" id="monthlyIncome">¥0</div>
+                </div>
+                <div class="summary-card">
+                    <h3>今月の支出</h3>
+                    <div class="amount expense" id="monthlyExpense">¥0</div>
+                </div>
+                <div class="summary-card">
+                    <h3>収支差額</h3>
+                    <div class="amount balance" id="monthlyBalance">¥0</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="nav-buttons" id="mainNav">
+            <button class="nav-btn" onclick="showScreen('transaction')">
+                📝 入出金登録
+            </button>
+            <button class="nav-btn" onclick="showScreen('category')">
+                🏷️ カテゴリ管理
+            </button>
+            <button class="nav-btn" onclick="showScreen('report')">
+                📊 レポート表示
+            </button>
+            <button class="nav-btn" onclick="exportData()">
+                💾 データエクスポート
+            </button>
+        </div>
+
+        <div class="content">
+            <!-- 入出金登録画面 -->
+            <div id="transactionScreen" class="screen">
+                <button class="back-btn" onclick="showScreen('main')">← メインに戻る</button>
+                <h2>入出金登録</h2>
+                
+                <div class="type-toggle">
+                    <button id="incomeBtn" class="active" onclick="setTransactionType('income')">収入</button>
+                    <button id="expenseBtn" onclick="setTransactionType('expense')">支出</button>
+                </div>
+
+                <form id="transactionForm">
+                    <div class="form-group">
+                        <label for="amount">金額 *</label>
+                        <input type="number" id="amount" required min="0" step="1">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="category">カテゴリ *</label>
+                        <select id="category" required>
+                            <option value="">カテゴリを選択</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="date">日付 *</label>
+                        <input type="date" id="date" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="memo">メモ</label>
+                        <textarea id="memo" rows="3" placeholder="任意でメモを入力"></textarea>
+                    </div>
+                    
+                    <button type="submit" class="btn">登録</button>
+                </form>
+            </div>
+
+            <!-- カテゴリ管理画面 -->
+            <div id="categoryScreen" class="screen">
+                <button class="back-btn" onclick="showScreen('main')">← メインに戻る</button>
+                <h2>カテゴリ管理</h2>
+                
+                <div class="form-group">
+                    <label for="newCategory">新しいカテゴリ</label>
+                    <input type="text" id="newCategory" placeholder="カテゴリ名を入力">
+                    <button type="button" class="btn" onclick="addCategory()">追加</button>
+                </div>
+                
+                <div class="category-list" id="categoryList"></div>
+            </div>
+
+            <!-- レポート画面 -->
+            <div id="reportScreen" class="screen">
+                <button class="back-btn" onclick="showScreen('main')">← メインに戻る</button>
+                <h2>レポート</h2>
+                
+                <div class="filters">
+                    <div class="form-group">
+                        <label for="startDate">開始日</label>
+                        <input type="date" id="startDate">
+                    </div>
+                    <div class="form-group">
+                        <label for="endDate">終了日</label>
+                        <input type="date" id="endDate">
+                    </div>
+                    <div class="form-group">
+                        <label for="filterCategory">カテゴリ</label>
+                        <select id="filterCategory">
+                            <option value="">全てのカテゴリ</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <button type="button" class="btn" onclick="generateReport()">レポート生成</button>
+                    </div>
+                </div>
+                
+                <div class="summary" id="reportSummary" style="display: none;">
+                    <div class="summary-card">
+                        <h3>期間収入</h3>
+                        <div class="amount income" id="reportIncome">¥0</div>
+                    </div>
+                    <div class="summary-card">
+                        <h3>期間支出</h3>
+                        <div class="amount expense" id="reportExpense">¥0</div>
+                    </div>
+                    <div class="summary-card">
+                        <h3>収支差額</h3>
+                        <div class="amount balance" id="reportBalance">¥0</div>
+                    </div>
+                </div>
+                
+                <div class="transaction-list" id="reportTransactions"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // データストレージ
+        let categories = [];
+        let transactions = [];
+        let currentTransactionType = 'income';
+
+        // 初期化
+        document.addEventListener('DOMContentLoaded', function() {
+            loadData();
+            initializeDateInputs();
+            updateMonthlySummary();
+            renderCategories();
+            updateCategorySelects();
+            showScreen('main');
+        });
+
+        // データの読み込み
+        function loadData() {
+            const savedCategories = JSON.parse(localStorage.getItem('categories') || '[]');
+            const savedTransactions = JSON.parse(localStorage.getItem('transactions') || '[]');
+            
+            categories = savedCategories.length > 0 ? savedCategories : [
+                { id: '1', name: '給与', createdAt: new Date().toISOString() },
+                { id: '2', name: '食費', createdAt: new Date().toISOString() },
+                { id: '3', name: '交通費', createdAt: new Date().toISOString() },
+                { id: '4', name: '娯楽', createdAt: new Date().toISOString() }
+            ];
+            
+            transactions = savedTransactions;
+            saveData();
+        }
+
+        // データの保存
+        function saveData() {
+            localStorage.setItem('categories', JSON.stringify(categories));
+            localStorage.setItem('transactions', JSON.stringify(transactions));
+        }
+
+        // 日付入力の初期化
+        function initializeDateInputs() {
+            const today = new Date().toISOString().split('T')[0];
+            document.getElementById('date').value = today;
+            
+            const startDate = new Date();
+            startDate.setDate(1);
+            document.getElementById('startDate').value = startDate.toISOString().split('T')[0];
+            document.getElementById('endDate').value = today;
+        }
+
+        // 画面表示切り替え
+        function showScreen(screenName) {
+            const screens = document.querySelectorAll('.screen');
+            const mainNav = document.getElementById('mainNav');
+            
+            screens.forEach(screen => screen.classList.remove('active'));
+            
+            if (screenName === 'main') {
+                mainNav.style.display = 'grid';
+            } else {
+                mainNav.style.display = 'none';
+                document.getElementById(screenName + 'Screen').classList.add('active');
+            }
+        }
+
+        // 取引タイプ設定
+        function setTransactionType(type) {
+            currentTransactionType = type;
+            document.getElementById('incomeBtn').classList.toggle('active', type === 'income');
+            document.getElementById('expenseBtn').classList.toggle('active', type === 'expense');
+        }
+
+        // カテゴリ追加
+        function addCategory() {
+            const newCategoryName = document.getElementById('newCategory').value.trim();
+            if (!newCategoryName) return;
+            
+            if (categories.some(cat => cat.name === newCategoryName)) {
+                alert('このカテゴリは既に存在します');
+                return;
+            }
+            
+            const newCategory = {
+                id: Date.now().toString(),
+                name: newCategoryName,
+                createdAt: new Date().toISOString()
+            };
+            
+            categories.push(newCategory);
+            saveData();
+            renderCategories();
+            updateCategorySelects();
+            document.getElementById('newCategory').value = '';
+        }
+
+        // カテゴリ削除
+        function deleteCategory(categoryId) {
+            if (confirm('このカテゴリを削除しますか？関連する取引も削除されます。')) {
+                categories = categories.filter(cat => cat.id !== categoryId);
+                transactions = transactions.filter(trans => trans.categoryId !== categoryId);
+                saveData();
+                renderCategories();
+                updateCategorySelects();
+                updateMonthlySummary();
+            }
+        }
+
+        // カテゴリ表示
+        function renderCategories() {
+            const categoryList = document.getElementById('categoryList');
+            categoryList.innerHTML = '';
+            
+            categories.forEach(category => {
+                const categoryItem = document.createElement('div');
+                categoryItem.className = 'category-item';
+                categoryItem.innerHTML = `
+                    <span>${category.name}</span>
+                    <button class="btn btn-danger" onclick="deleteCategory('${category.id}')">削除</button>
+                `;
+                categoryList.appendChild(categoryItem);
+            });
+        }
+
+        // カテゴリ選択肢更新
+        function updateCategorySelects() {
+            const categorySelect = document.getElementById('category');
+            const filterCategorySelect = document.getElementById('filterCategory');
+            
+            [categorySelect, filterCategorySelect].forEach(select => {
+                const currentValue = select.value;
+                select.innerHTML = select.id === 'category' ? '<option value="">カテゴリを選択</option>' : '<option value="">全てのカテゴリ</option>';
+                
+                categories.forEach(category => {
+                    const option = document.createElement('option');
+                    option.value = category.id;
+                    option.textContent = category.name;
+                    select.appendChild(option);
+                });
+                
+                select.value = currentValue;
+            });
+        }
+
+        // 取引フォーム送信
+        document.getElementById('transactionForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const amount = parseFloat(document.getElementById('amount').value);
+            const categoryId = document.getElementById('category').value;
+            const date = document.getElementById('date').value;
+            const memo = document.getElementById('memo').value;
+            
+            if (!amount || !categoryId || !date) {
+                alert('必須項目を入力してください');
+                return;
+            }
+            
+            const transaction = {
+                id: Date.now().toString(),
+                amount: amount,
+                categoryId: categoryId,
+                date: date,
+                memo: memo,
+                type: currentTransactionType,
+                createdAt: new Date().toISOString()
+            };
+            
+            transactions.push(transaction);
+            saveData();
+            updateMonthlySummary();
+            
+            // フォームリセット
+            document.getElementById('transactionForm').reset();
+            document.getElementById('date').value = new Date().toISOString().split('T')[0];
+            
+            alert('取引が登録されました');
+        });
+
+        // 月次サマリー更新
+        function updateMonthlySummary() {
+            const now = new Date();
+            const currentMonth = now.getMonth();
+            const currentYear = now.getFullYear();
+            
+            const monthlyTransactions = transactions.filter(trans => {
+                const transDate = new Date(trans.date);
+                return transDate.getMonth() === currentMonth && transDate.getFullYear() === currentYear;
+            });
+            
+            const income = monthlyTransactions
+                .filter(trans => trans.type === 'income')
+                .reduce((sum, trans) => sum + trans.amount, 0);
+            
+            const expense = monthlyTransactions
+                .filter(trans => trans.type === 'expense')
+                .reduce((sum, trans) => sum + trans.amount, 0);
+            
+            const balance = income - expense;
+            
+            document.getElementById('monthlyIncome').textContent = `¥${income.toLocaleString()}`;
+            document.getElementById('monthlyExpense').textContent = `¥${expense.toLocaleString()}`;
+            document.getElementById('monthlyBalance').textContent = `¥${balance.toLocaleString()}`;
+        }
+
+        // レポート生成
+        function generateReport() {
+            const startDate = document.getElementById('startDate').value;
+            const endDate = document.getElementById('endDate').value;
+            const filterCategoryId = document.getElementById('filterCategory').value;
+            
+            if (!startDate || !endDate) {
+                alert('開始日と終了日を選択してください');
+                return;
+            }
+            
+            let filteredTransactions = transactions.filter(trans => {
+                const transDate = trans.date;
+                return transDate >= startDate && transDate <= endDate;
+            });
+            
+            if (filterCategoryId) {
+                filteredTransactions = filteredTransactions.filter(trans => trans.categoryId === filterCategoryId);
+            }
+            
+            const income = filteredTransactions
+                .filter(trans => trans.type === 'income')
+                .reduce((sum, trans) => sum + trans.amount, 0);
+            
+            const expense = filteredTransactions
+                .filter(trans => trans.type === 'expense')
+                .reduce((sum, trans) => sum + trans.amount, 0);
+            
+            const balance = income - expense;
+            
+            document.getElementById('reportIncome').textContent = `¥${income.toLocaleString()}`;
+            document.getElementById('reportExpense').textContent = `¥${expense.toLocaleString()}`;
+            document.getElementById('reportBalance').textContent = `¥${balance.toLocaleString()}`;
+            
+            document.getElementById('reportSummary').style.display = 'grid';
+            
+            // 取引一覧表示
+            const reportTransactions = document.getElementById('reportTransactions');
+            reportTransactions.innerHTML = '';
+            
+            filteredTransactions.sort((a, b) => new Date(b.date) - new Date(a.date));
+            
+            filteredTransactions.forEach(trans => {
+                const categoryName = categories.find(cat => cat.id === trans.categoryId)?.name || '不明';
+                const transactionItem = document.createElement('div');
+                transactionItem.className = `transaction-item ${trans.type}`;
+                transactionItem.innerHTML = `
+                    <div class="transaction-info">
+                        <div class="transaction-date">${trans.date}</div>
+                        <div>${categoryName}</div>
+                        ${trans.memo ? `<div style="color: #666; font-size: 0.9em;">${trans.memo}</div>` : ''}
+                    </div>
+                    <div class="transaction-amount ${trans.type}">
+                        ${trans.type === 'income' ? '+' : '-'}¥${trans.amount.toLocaleString()}
+                    </div>
+                `;
+                reportTransactions.appendChild(transactionItem);
+            });
+        }
+
+        // データエクスポート
+        function exportData() {
+            const data = {
+                categories: categories,
+                transactions: transactions,
+                exportDate: new Date().toISOString()
+            };
+            
+            const dataStr = JSON.stringify(data, null, 2);
+            const dataBlob = new Blob([dataStr], { type: 'application/json' });
+            const url = URL.createObjectURL(dataBlob);
+            
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = `家計簿データ_${new Date().toISOString().split('T')[0]}.json`;
+            link.click();
+            
+            URL.revokeObjectURL(url);
+        }
+    </script>
+</body>
+</html>
