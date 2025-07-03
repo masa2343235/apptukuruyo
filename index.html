@@ -178,11 +178,6 @@
             background: #28a745;
         }
 
-        .btn-warning {
-            background: #ffc107;
-            color: #212529;
-        }
-
         .btn-small {
             padding: 8px 16px;
             font-size: 14px;
@@ -273,6 +268,7 @@
 
         .transaction-actions {
             display: flex;
+            align-items: center;
             gap: 10px;
         }
 
@@ -296,76 +292,12 @@
             margin-bottom: 20px;
         }
 
-        .quick-actions {
-            display: flex;
-            gap: 10px;
-            margin-bottom: 20px;
-            flex-wrap: wrap;
-        }
-
-        .modal {
-            display: none;
-            position: fixed;
-            z-index: 1000;
-            left: 0;
-            top: 0;
-            width: 100%;
-            height: 100%;
-            background-color: rgba(0, 0, 0, 0.5);
-        }
-
-        .modal-content {
-            background-color: #fefefe;
-            margin: 15% auto;
-            padding: 20px;
-            border-radius: 10px;
-            width: 80%;
-            max-width: 500px;
-        }
-
-        .close {
-            color: #aaa;
-            float: right;
-            font-size: 28px;
-            font-weight: bold;
-            cursor: pointer;
-        }
-
-        .close:hover {
-            color: black;
-        }
-
-        .goal-progress {
-            background: #e0e0e0;
-            border-radius: 10px;
-            height: 20px;
-            margin-top: 10px;
-            overflow: hidden;
-        }
-
-        .goal-progress-bar {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            height: 100%;
-            transition: width 0.3s ease;
-        }
-
-        .alert {
-            padding: 15px;
-            margin-bottom: 20px;
-            border-radius: 10px;
-            font-weight: 600;
-        }
-
-        .alert-warning {
-            background: #fff3cd;
-            color: #856404;
-            border: 1px solid #ffeaa7;
-        }
-
-        .alert-info {
-            background: #d1ecf1;
-            color: #0c5460;
-            border: 1px solid #bee5eb;
+        .no-transactions {
+            text-align: center;
+            color: #666;
+            font-style: italic;
+            margin-top: 20px;
+            padding: 40px;
         }
 
         @media (max-width: 768px) {
@@ -392,10 +324,10 @@
             .transaction-item {
                 flex-direction: column;
                 align-items: flex-start;
+                gap: 10px;
             }
 
             .transaction-actions {
-                margin-top: 10px;
                 align-self: flex-end;
             }
         }
@@ -418,10 +350,6 @@
                     <h3>収支差額</h3>
                     <div class="amount balance" id="monthlyBalance">¥0</div>
                 </div>
-                <div class="summary-card">
-                    <h3>平均日次支出</h3>
-                    <div class="amount" id="dailyAverage">¥0</div>
-                </div>
             </div>
         </div>
 
@@ -435,8 +363,8 @@
             <button class="nav-btn" onclick="showScreen('report')">
                 📊 レポート表示
             </button>
-            <button class="nav-btn" onclick="showScreen('budget')">
-                🎯 予算管理
+            <button class="nav-btn" onclick="exportData()">
+                💾 データエクスポート
             </button>
         </div>
 
@@ -445,13 +373,6 @@
             <div id="transactionScreen" class="screen">
                 <button class="back-btn" onclick="showScreen('main')">← メインに戻る</button>
                 <h2>入出金登録</h2>
-                
-                <div class="quick-actions">
-                    <button class="btn btn-small" onclick="setQuickAmount(1000)">¥1,000</button>
-                    <button class="btn btn-small" onclick="setQuickAmount(5000)">¥5,000</button>
-                    <button class="btn btn-small" onclick="setQuickAmount(10000)">¥10,000</button>
-                    <button class="btn btn-small" onclick="clearForm()">クリア</button>
-                </div>
                 
                 <div class="type-toggle">
                     <button id="incomeBtn" class="active" onclick="setTransactionType('income')">収入</button>
@@ -481,8 +402,7 @@
                         <textarea id="memo" rows="3" placeholder="任意でメモを入力"></textarea>
                     </div>
                     
-                    <button type="submit" class="btn" id="submitBtn">登録</button>
-                    <button type="button" class="btn btn-secondary" id="cancelEditBtn" onclick="cancelEdit()" style="display:none;">キャンセル</button>
+                    <button type="submit" class="btn">登録</button>
                 </form>
             </div>
 
@@ -542,62 +462,6 @@
                 
                 <div class="transaction-list" id="reportTransactions"></div>
             </div>
-
-            <!-- 予算管理画面 -->
-            <div id="budgetScreen" class="screen">
-                <button class="back-btn" onclick="showScreen('main')">← メインに戻る</button>
-                <h2>予算管理</h2>
-                
-                <div class="form-group">
-                    <label for="monthlyBudget">月次予算目標</label>
-                    <input type="number" id="monthlyBudget" placeholder="月次予算を入力" min="0">
-                    <button type="button" class="btn" onclick="setBudget()">設定</button>
-                </div>
-                
-                <div id="budgetStatus" style="display: none;">
-                    <h3>今月の予算状況</h3>
-                    <div class="goal-progress">
-                        <div class="goal-progress-bar" id="budgetProgressBar"></div>
-                    </div>
-                    <div id="budgetText" style="margin-top: 10px;"></div>
-                </div>
-                
-                <div id="budgetAlerts"></div>
-            </div>
-        </div>
-    </div>
-
-    <!-- 編集モーダル -->
-    <div id="editModal" class="modal">
-        <div class="modal-content">
-            <span class="close">&times;</span>
-            <h2>取引を編集</h2>
-            <form id="editForm">
-                <div class="form-group">
-                    <label for="editAmount">金額 *</label>
-                    <input type="number" id="editAmount" required min="0" step="1">
-                </div>
-                
-                <div class="form-group">
-                    <label for="editCategory">カテゴリ *</label>
-                    <select id="editCategory" required>
-                        <option value="">カテゴリを選択</option>
-                    </select>
-                </div>
-                
-                <div class="form-group">
-                    <label for="editDate">日付 *</label>
-                    <input type="date" id="editDate" required>
-                </div>
-                
-                <div class="form-group">
-                    <label for="editMemo">メモ</label>
-                    <textarea id="editMemo" rows="3"></textarea>
-                </div>
-                
-                <button type="submit" class="btn">更新</button>
-                <button type="button" class="btn btn-secondary" onclick="closeModal()">キャンセル</button>
-            </form>
         </div>
     </div>
 
@@ -606,8 +470,6 @@
         let categories = [];
         let transactions = [];
         let currentTransactionType = 'income';
-        let editingTransactionId = null;
-        let monthlyBudget = 0;
 
         // 初期化
         document.addEventListener('DOMContentLoaded', function() {
@@ -617,15 +479,12 @@
             renderCategories();
             updateCategorySelects();
             showScreen('main');
-            setupModal();
-            updateBudgetDisplay();
         });
 
         // データの読み込み
         function loadData() {
             const savedCategories = JSON.parse(localStorage.getItem('categories') || '[]');
             const savedTransactions = JSON.parse(localStorage.getItem('transactions') || '[]');
-            const savedBudget = parseInt(localStorage.getItem('monthlyBudget') || '0');
             
             categories = savedCategories.length > 0 ? savedCategories : [
                 { id: '1', name: '給与', createdAt: new Date().toISOString() },
@@ -635,7 +494,6 @@
             ];
             
             transactions = savedTransactions;
-            monthlyBudget = savedBudget;
             saveData();
         }
 
@@ -643,7 +501,6 @@
         function saveData() {
             localStorage.setItem('categories', JSON.stringify(categories));
             localStorage.setItem('transactions', JSON.stringify(transactions));
-            localStorage.setItem('monthlyBudget', monthlyBudget.toString());
         }
 
         // 日付入力の初期化
@@ -677,20 +534,6 @@
             currentTransactionType = type;
             document.getElementById('incomeBtn').classList.toggle('active', type === 'income');
             document.getElementById('expenseBtn').classList.toggle('active', type === 'expense');
-        }
-
-        // クイック金額設定
-        function setQuickAmount(amount) {
-            document.getElementById('amount').value = amount;
-        }
-
-        // フォームクリア
-        function clearForm() {
-            document.getElementById('transactionForm').reset();
-            document.getElementById('date').value = new Date().toISOString().split('T')[0];
-            editingTransactionId = null;
-            document.getElementById('submitBtn').textContent = '登録';
-            document.getElementById('cancelEditBtn').style.display = 'none';
         }
 
         // カテゴリ追加
@@ -748,9 +591,8 @@
         function updateCategorySelects() {
             const categorySelect = document.getElementById('category');
             const filterCategorySelect = document.getElementById('filterCategory');
-            const editCategorySelect = document.getElementById('editCategory');
             
-            [categorySelect, filterCategorySelect, editCategorySelect].forEach(select => {
+            [categorySelect, filterCategorySelect].forEach(select => {
                 const currentValue = select.value;
                 select.innerHTML = select.id === 'category' ? '<option value="">カテゴリを選択</option>' : '<option value="">全てのカテゴリ</option>';
                 
@@ -765,84 +607,16 @@
             });
         }
 
-        // 取引編集
-        function editTransaction(transactionId) {
-            const transaction = transactions.find(t => t.id === transactionId);
-            if (!transaction) return;
-            
-            document.getElementById('editAmount').value = transaction.amount;
-            document.getElementById('editCategory').value = transaction.categoryId;
-            document.getElementById('editDate').value = transaction.date;
-            document.getElementById('editMemo').value = transaction.memo;
-            
-            editingTransactionId = transactionId;
-            document.getElementById('editModal').style.display = 'block';
-        }
-
         // 取引削除
         function deleteTransaction(transactionId) {
             if (confirm('この取引を削除しますか？')) {
-                transactions = transactions.filter(t => t.id !== transactionId);
+                transactions = transactions.filter(trans => trans.id !== transactionId);
                 saveData();
                 updateMonthlySummary();
-                generateReport();
-                updateBudgetDisplay();
+                generateReport(); // レポートを再生成
+                alert('取引が削除されました');
             }
         }
-
-        // モーダル設定
-        function setupModal() {
-            const modal = document.getElementById('editModal');
-            const closeBtn = document.querySelector('.close');
-            
-            closeBtn.onclick = function() {
-                modal.style.display = 'none';
-            }
-            
-            window.onclick = function(event) {
-                if (event.target === modal) {
-                    modal.style.display = 'none';
-                }
-            }
-        }
-
-        // モーダルを閉じる
-        function closeModal() {
-            document.getElementById('editModal').style.display = 'none';
-        }
-
-        // 編集フォーム送信
-        document.getElementById('editForm').addEventListener('submit', function(e) {
-            e.preventDefault();
-            
-            const amount = parseFloat(document.getElementById('editAmount').value);
-            const categoryId = document.getElementById('editCategory').value;
-            const date = document.getElementById('editDate').value;
-            const memo = document.getElementById('editMemo').value;
-            
-            if (!amount || !categoryId || !date) {
-                alert('必須項目を入力してください');
-                return;
-            }
-            
-            const transactionIndex = transactions.findIndex(t => t.id === editingTransactionId);
-            if (transactionIndex !== -1) {
-                transactions[transactionIndex] = {
-                    ...transactions[transactionIndex],
-                    amount: amount,
-                    categoryId: categoryId,
-                    date: date,
-                    memo: memo
-                };
-                
-                saveData();
-                updateMonthlySummary();
-                generateReport();
-                updateBudgetDisplay();
-                closeModal();
-                alert('取引が更新されました');
-            }
-        });
 
         // 取引フォーム送信
         document.getElementById('transactionForm').addEventListener('submit', function(e) {
@@ -871,10 +645,10 @@
             transactions.push(transaction);
             saveData();
             updateMonthlySummary();
-            updateBudgetDisplay();
             
             // フォームリセット
-            clearForm();
+            document.getElementById('transactionForm').reset();
+            document.getElementById('date').value = new Date().toISOString().split('T')[0];
             
             alert('取引が登録されました');
         });
@@ -886,4 +660,112 @@
             const currentYear = now.getFullYear();
             
             const monthlyTransactions = transactions.filter(trans => {
-                const trans
+                const transDate = new Date(trans.date);
+                return transDate.getMonth() === currentMonth && transDate.getFullYear() === currentYear;
+            });
+            
+            const income = monthlyTransactions
+                .filter(trans => trans.type === 'income')
+                .reduce((sum, trans) => sum + trans.amount, 0);
+            
+            const expense = monthlyTransactions
+                .filter(trans => trans.type === 'expense')
+                .reduce((sum, trans) => sum + trans.amount, 0);
+            
+            const balance = income - expense;
+            
+            document.getElementById('monthlyIncome').textContent = `¥${income.toLocaleString()}`;
+            document.getElementById('monthlyExpense').textContent = `¥${expense.toLocaleString()}`;
+            document.getElementById('monthlyBalance').textContent = `¥${balance.toLocaleString()}`;
+        }
+
+        // レポート生成
+        function generateReport() {
+            const startDate = document.getElementById('startDate').value;
+            const endDate = document.getElementById('endDate').value;
+            const filterCategoryId = document.getElementById('filterCategory').value;
+            
+            if (!startDate || !endDate) {
+                alert('開始日と終了日を選択してください');
+                return;
+            }
+            
+            let filteredTransactions = transactions.filter(trans => {
+                const transDate = trans.date;
+                return transDate >= startDate && transDate <= endDate;
+            });
+            
+            if (filterCategoryId) {
+                filteredTransactions = filteredTransactions.filter(trans => trans.categoryId === filterCategoryId);
+            }
+            
+            const income = filteredTransactions
+                .filter(trans => trans.type === 'income')
+                .reduce((sum, trans) => sum + trans.amount, 0);
+            
+            const expense = filteredTransactions
+                .filter(trans => trans.type === 'expense')
+                .reduce((sum, trans) => sum + trans.amount, 0);
+            
+            const balance = income - expense;
+            
+            document.getElementById('reportIncome').textContent = `¥${income.toLocaleString()}`;
+            document.getElementById('reportExpense').textContent = `¥${expense.toLocaleString()}`;
+            document.getElementById('reportBalance').textContent = `¥${balance.toLocaleString()}`;
+            
+            document.getElementById('reportSummary').style.display = 'grid';
+            
+            // 取引一覧表示
+            const reportTransactions = document.getElementById('reportTransactions');
+            reportTransactions.innerHTML = '';
+            
+            if (filteredTransactions.length === 0) {
+                reportTransactions.innerHTML = '<div class="no-transactions">該当する取引がありません</div>';
+                return;
+            }
+            
+            filteredTransactions.sort((a, b) => new Date(b.date) - new Date(a.date));
+            
+            filteredTransactions.forEach(trans => {
+                const categoryName = categories.find(cat => cat.id === trans.categoryId)?.name || '不明';
+                const transactionItem = document.createElement('div');
+                transactionItem.className = `transaction-item ${trans.type}`;
+                transactionItem.innerHTML = `
+                    <div class="transaction-info">
+                        <div class="transaction-date">${trans.date}</div>
+                        <div>${categoryName}</div>
+                        ${trans.memo ? `<div style="color: #666; font-size: 0.9em;">${trans.memo}</div>` : ''}
+                    </div>
+                    <div class="transaction-actions">
+                        <div class="transaction-amount ${trans.type}">
+                            ${trans.type === 'income' ? '+' : '-'}¥${trans.amount.toLocaleString()}
+                        </div>
+                        <button class="btn btn-danger btn-small" onclick="deleteTransaction('${trans.id}')">削除</button>
+                    </div>
+                `;
+                reportTransactions.appendChild(transactionItem);
+            });
+        }
+
+        // データエクスポート
+        function exportData() {
+            const data = {
+                categories: categories,
+                transactions: transactions,
+                exportDate: new Date().toISOString()
+            };
+            
+            const dataStr = JSON.stringify(data, null, 2);
+            const dataBlob = new Blob([dataStr], { type: 'application/json' });
+            const url = URL.createObjectURL(dataBlob);
+            
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = `家計簿データ_${new Date().toISOString().split('T')[0]}.json`;
+            link.click();
+            
+            URL.revokeObjectURL(url);
+        }
+    </script>
+</body>
+</html>
