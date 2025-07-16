@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>入出金管理アプリ</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
     <style>
         * {
             margin: 0;
@@ -300,6 +301,29 @@
             padding: 40px;
         }
 
+        .chart-container {
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            margin-bottom: 30px;
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+        }
+
+        .chart-title {
+            text-align: center;
+            font-size: 1.5em;
+            font-weight: 600;
+            color: #667eea;
+            margin-bottom: 20px;
+        }
+
+        .chart-controls {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+
         @media (max-width: 768px) {
             .container {
                 padding: 10px;
@@ -330,6 +354,11 @@
             .transaction-actions {
                 align-self: flex-end;
             }
+
+            .chart-controls {
+                flex-direction: column;
+                align-items: center;
+            }
         }
     </style>
 </head>
@@ -354,29 +383,29 @@
         </div>
 
         <div class="nav-buttons" id="mainNav">
-            <button class="nav-btn" onclick="showScreen('transaction')">
+            <button class="nav-btn" id="transactionNavBtn">
                 📝 入出金登録
             </button>
-            <button class="nav-btn" onclick="showScreen('category')">
+            <button class="nav-btn" id="categoryNavBtn">
                 🏷️ カテゴリ管理
             </button>
-            <button class="nav-btn" onclick="showScreen('report')">
+            <button class="nav-btn" id="reportNavBtn">
                 📊 レポート表示
             </button>
-            <button class="nav-btn" onclick="exportData()">
-                💾 データエクスポート
+            <button class="nav-btn" id="chartNavBtn">
+                📈 月別グラフ
             </button>
         </div>
 
         <div class="content">
             <!-- 入出金登録画面 -->
             <div id="transactionScreen" class="screen">
-                <button class="back-btn" onclick="showScreen('main')">← メインに戻る</button>
+                <button class="back-btn" id="transactionBackBtn">← メインに戻る</button>
                 <h2>入出金登録</h2>
                 
                 <div class="type-toggle">
-                    <button id="incomeBtn" class="active" onclick="setTransactionType('income')">収入</button>
-                    <button id="expenseBtn" onclick="setTransactionType('expense')">支出</button>
+                    <button id="incomeBtn" class="active">収入</button>
+                    <button id="expenseBtn">支出</button>
                 </div>
 
                 <form id="transactionForm">
@@ -408,13 +437,13 @@
 
             <!-- カテゴリ管理画面 -->
             <div id="categoryScreen" class="screen">
-                <button class="back-btn" onclick="showScreen('main')">← メインに戻る</button>
+                <button class="back-btn" id="categoryBackBtn">← メインに戻る</button>
                 <h2>カテゴリ管理</h2>
                 
                 <div class="form-group">
                     <label for="newCategory">新しいカテゴリ</label>
                     <input type="text" id="newCategory" placeholder="カテゴリ名を入力">
-                    <button type="button" class="btn" onclick="addCategory()">追加</button>
+                    <button type="button" class="btn" id="addCategoryBtn">追加</button>
                 </div>
                 
                 <div class="category-list" id="categoryList"></div>
@@ -422,7 +451,7 @@
 
             <!-- レポート画面 -->
             <div id="reportScreen" class="screen">
-                <button class="back-btn" onclick="showScreen('main')">← メインに戻る</button>
+                <button class="back-btn" id="reportBackBtn">← メインに戻る</button>
                 <h2>レポート</h2>
                 
                 <div class="filters">
@@ -441,7 +470,7 @@
                         </select>
                     </div>
                     <div class="form-group">
-                        <button type="button" class="btn" onclick="generateReport()">レポート生成</button>
+                        <button type="button" class="btn" id="generateReportBtn">レポート生成</button>
                     </div>
                 </div>
                 
@@ -462,6 +491,23 @@
                 
                 <div class="transaction-list" id="reportTransactions"></div>
             </div>
+
+            <!-- 月別グラフ画面 -->
+            <div id="chartScreen" class="screen">
+                <button class="back-btn" id="chartBackBtn">← メインに戻る</button>
+                <h2>月別グラフ</h2>
+                
+                <div class="chart-container">
+                    <div class="chart-title">月別収支グラフ</div>
+                    <div class="chart-controls">
+                        <select id="chartYear">
+                            <option value="">年を選択</option>
+                        </select>
+                        <button class="btn" id="updateChartBtn">グラフ更新</button>
+                    </div>
+                    <canvas id="monthlyChart" width="400" height="200"></canvas>
+                </div>
+            </div>
         </div>
     </div>
 
@@ -470,49 +516,7 @@
         let categories = [];
         let transactions = [];
         let currentTransactionType = 'income';
-
-        // 初期化
-        document.addEventListener('DOMContentLoaded', function() {
-            loadData();
-            initializeDateInputs();
-            updateMonthlySummary();
-            renderCategories();
-            updateCategorySelects();
-            showScreen('main');
-        });
-
-        // データの読み込み
-        function loadData() {
-            const savedCategories = JSON.parse(localStorage.getItem('categories') || '[]');
-            const savedTransactions = JSON.parse(localStorage.getItem('transactions') || '[]');
-            
-            categories = savedCategories.length > 0 ? savedCategories : [
-                { id: '1', name: '給与', createdAt: new Date().toISOString() },
-                { id: '2', name: '食費', createdAt: new Date().toISOString() },
-                { id: '3', name: '交通費', createdAt: new Date().toISOString() },
-                { id: '4', name: '娯楽', createdAt: new Date().toISOString() }
-            ];
-            
-            transactions = savedTransactions;
-            saveData();
-        }
-
-        // データの保存
-        function saveData() {
-            localStorage.setItem('categories', JSON.stringify(categories));
-            localStorage.setItem('transactions', JSON.stringify(transactions));
-        }
-
-        // 日付入力の初期化
-        function initializeDateInputs() {
-            const today = new Date().toISOString().split('T')[0];
-            document.getElementById('date').value = today;
-            
-            const startDate = new Date();
-            startDate.setDate(1);
-            document.getElementById('startDate').value = startDate.toISOString().split('T')[0];
-            document.getElementById('endDate').value = today;
-        }
+        let monthlyChart = null;
 
         // 画面表示切り替え
         function showScreen(screenName) {
@@ -526,6 +530,10 @@
             } else {
                 mainNav.style.display = 'none';
                 document.getElementById(screenName + 'Screen').classList.add('active');
+                
+                if (screenName === 'chart') {
+                    initializeChartYears();
+                }
             }
         }
 
@@ -613,45 +621,52 @@
                 transactions = transactions.filter(trans => trans.id !== transactionId);
                 saveData();
                 updateMonthlySummary();
-                generateReport(); // レポートを再生成
+                generateReport();
                 alert('取引が削除されました');
             }
         }
 
-        // 取引フォーム送信
-        document.getElementById('transactionForm').addEventListener('submit', function(e) {
-            e.preventDefault();
+        // データの読み込み
+        function loadData() {
+            const savedCategories = localStorage.getItem('categories');
+            const savedTransactions = localStorage.getItem('transactions');
             
-            const amount = parseFloat(document.getElementById('amount').value);
-            const categoryId = document.getElementById('category').value;
-            const date = document.getElementById('date').value;
-            const memo = document.getElementById('memo').value;
-            
-            if (!amount || !categoryId || !date) {
-                alert('必須項目を入力してください');
-                return;
+            if (savedCategories) {
+                categories = JSON.parse(savedCategories);
+            } else {
+                categories = [
+                    { id: '1', name: '給与', createdAt: new Date().toISOString() },
+                    { id: '2', name: '食費', createdAt: new Date().toISOString() },
+                    { id: '3', name: '交通費', createdAt: new Date().toISOString() },
+                    { id: '4', name: '娯楽', createdAt: new Date().toISOString() }
+                ];
             }
             
-            const transaction = {
-                id: Date.now().toString(),
-                amount: amount,
-                categoryId: categoryId,
-                date: date,
-                memo: memo,
-                type: currentTransactionType,
-                createdAt: new Date().toISOString()
-            };
+            if (savedTransactions) {
+                transactions = JSON.parse(savedTransactions);
+            } else {
+                transactions = [];
+            }
             
-            transactions.push(transaction);
             saveData();
-            updateMonthlySummary();
+        }
+
+        // データの保存
+        function saveData() {
+            localStorage.setItem('categories', JSON.stringify(categories));
+            localStorage.setItem('transactions', JSON.stringify(transactions));
+        }
+
+        // 日付入力の初期化
+        function initializeDateInputs() {
+            const today = new Date().toISOString().split('T')[0];
+            document.getElementById('date').value = today;
             
-            // フォームリセット
-            document.getElementById('transactionForm').reset();
-            document.getElementById('date').value = new Date().toISOString().split('T')[0];
-            
-            alert('取引が登録されました');
-        });
+            const startDate = new Date();
+            startDate.setDate(1);
+            document.getElementById('startDate').value = startDate.toISOString().split('T')[0];
+            document.getElementById('endDate').value = today;
+        }
 
         // 月次サマリー更新
         function updateMonthlySummary() {
@@ -747,25 +762,112 @@
             });
         }
 
-        // データエクスポート
-        function exportData() {
-            const data = {
-                categories: categories,
-                transactions: transactions,
-                exportDate: new Date().toISOString()
-            };
+        // グラフ初期化
+        function initializeChart() {
+            const ctx = document.getElementById('monthlyChart').getContext('2d');
             
-            const dataStr = JSON.stringify(data, null, 2);
-            const dataBlob = new Blob([dataStr], { type: 'application/json' });
-            const url = URL.createObjectURL(dataBlob);
-            
-            const link = document.createElement('a');
-            link.href = url;
-            link.download = `家計簿データ_${new Date().toISOString().split('T')[0]}.json`;
-            link.click();
-            
-            URL.revokeObjectURL(url);
+            monthlyChart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: ['1月', '2月', '3月', '4月', '5月', '6月', '7月', '8月', '9月', '10月', '11月', '12月'],
+                    datasets: [{
+                        label: '収入',
+                        data: new Array(12).fill(0),
+                        backgroundColor: 'rgba(76, 175, 80, 0.6)',
+                        borderColor: 'rgba(76, 175, 80, 1)',
+                        borderWidth: 1
+                    }, {
+                        label: '支出',
+                        data: new Array(12).fill(0),
+                        backgroundColor: 'rgba(244, 67, 54, 0.6)',
+                        borderColor: 'rgba(244, 67, 54, 1)',
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        title: {
+                            display: true,
+                            text: '月別収支'
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: {
+                                callback: function(value) {
+                                    return '¥' + value.toLocaleString();
+                                }
+                            }
+                        }
+                    }
+                }
+            });
         }
-    </script>
-</body>
-</html>
+
+        // グラフ年選択肢初期化
+        function initializeChartYears() {
+            const chartYearSelect = document.getElementById('chartYear');
+            const currentYear = new Date().getFullYear();
+            
+            // 取引データから年を抽出
+            const years = new Set();
+            transactions.forEach(trans => {
+                years.add(new Date(trans.date).getFullYear());
+            });
+            
+            // 現在の年も追加
+            years.add(currentYear);
+            
+            // 年選択肢を更新
+            chartYearSelect.innerHTML = '<option value="">年を選択</option>';
+            Array.from(years).sort((a, b) => b - a).forEach(year => {
+                const option = document.createElement('option');
+                option.value = year;
+                option.textContent = year + '年';
+                chartYearSelect.appendChild(option);
+            });
+            
+            // 現在の年を選択
+            chartYearSelect.value = currentYear;
+            updateChart();
+        }
+
+        // グラフ更新
+        function updateChart() {
+            const selectedYear = document.getElementById('chartYear').value;
+            if (!selectedYear) return;
+            
+            const year = parseInt(selectedYear);
+            const incomeData = new Array(12).fill(0);
+            const expenseData = new Array(12).fill(0);
+            
+            transactions.forEach(trans => {
+                const transDate = new Date(trans.date);
+                if (transDate.getFullYear() === year) {
+                    const month = transDate.getMonth();
+                    if (trans.type === 'income') {
+                        incomeData[month] += trans.amount;
+                    } else {
+                        expenseData[month] += trans.amount;
+                    }
+                }
+            });
+            
+            monthlyChart.data.datasets[0].data = incomeData;
+            monthlyChart.data.datasets[1].data = expenseData;
+            monthlyChart.update();
+        }
+
+        // 取引フォーム送信
+        function handleTransactionSubmit(event) {
+            event.preventDefault();
+            
+            const amount = parseFloat(document.getElementById('amount').value);
+            const categoryId = document.getElementById('category').value;
+            const date = document.getElementById('date').value;
+            const memo = document.getElementById('memo').value;
+            
+            if (!amount
