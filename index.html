@@ -234,29 +234,26 @@
             border: 1px solid #e0e0e0;
         }
 
+        .subscription-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 20px;
+            margin-top: 20px;
+        }
+
         .subscription-item {
-            background: #f8f9fa;
+            background: #fff4e6;
             padding: 20px;
-            border-radius: 10px;
-            margin-bottom: 15px;
-            border-left: 4px solid #FF9800;
-            position: relative;
-        }
-
-        .subscription-item.active {
-            border-left-color: #4CAF50;
-        }
-
-        .subscription-item.inactive {
-            border-left-color: #9e9e9e;
-            opacity: 0.7;
+            border-radius: 15px;
+            border: 2px solid #FF9800;
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
         }
 
         .subscription-header {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 10px;
+            margin-bottom: 15px;
         }
 
         .subscription-name {
@@ -267,52 +264,19 @@
 
         .subscription-amount {
             font-weight: bold;
-            font-size: 1.3em;
+            font-size: 1.1em;
             color: #FF9800;
         }
 
         .subscription-details {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-            gap: 10px;
-            margin-bottom: 15px;
-        }
-
-        .subscription-detail {
-            font-size: 0.9em;
             color: #666;
+            font-size: 0.9em;
+            margin-bottom: 15px;
         }
 
         .subscription-actions {
             display: flex;
             gap: 10px;
-            flex-wrap: wrap;
-        }
-
-        .status-badge {
-            padding: 4px 8px;
-            border-radius: 5px;
-            font-size: 0.8em;
-            font-weight: bold;
-            text-transform: uppercase;
-        }
-
-        .status-active {
-            background: #d4edda;
-            color: #155724;
-        }
-
-        .status-inactive {
-            background: #f8d7da;
-            color: #721c24;
-        }
-
-        .next-payment {
-            background: #fff3cd;
-            padding: 10px;
-            border-radius: 5px;
-            border-left: 4px solid #ffc107;
-            margin-top: 10px;
         }
 
         .transaction-list {
@@ -340,6 +304,7 @@
 
         .transaction-item.subscription {
             border-left-color: #FF9800;
+            background: #fff4e6;
         }
 
         .transaction-info {
@@ -391,25 +356,22 @@
             padding: 40px;
         }
 
-        .form-row {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 15px;
+        .status-badge {
+            padding: 5px 10px;
+            border-radius: 20px;
+            font-size: 0.8em;
+            font-weight: bold;
+            text-transform: uppercase;
         }
 
-        .notification {
-            background: #d1ecf1;
-            border: 1px solid #bee5eb;
-            border-radius: 10px;
-            padding: 15px;
-            margin-bottom: 20px;
-            border-left: 4px solid #17a2b8;
+        .status-active {
+            background: #d4edda;
+            color: #155724;
         }
 
-        .notification.warning {
-            background: #fff3cd;
-            border-color: #ffeaa7;
-            border-left-color: #ffc107;
+        .status-inactive {
+            background: #f8d7da;
+            color: #721c24;
         }
 
         @media (max-width: 768px) {
@@ -433,7 +395,7 @@
                 grid-template-columns: 1fr;
             }
 
-            .form-row {
+            .subscription-list {
                 grid-template-columns: 1fr;
             }
 
@@ -445,16 +407,6 @@
 
             .transaction-actions {
                 align-self: flex-end;
-            }
-
-            .subscription-header {
-                flex-direction: column;
-                align-items: flex-start;
-                gap: 10px;
-            }
-
-            .subscription-details {
-                grid-template-columns: 1fr;
             }
         }
     </style>
@@ -473,7 +425,7 @@
                     <div class="amount expense" id="monthlyExpense">¥0</div>
                 </div>
                 <div class="summary-card">
-                    <h3>月額サブスク</h3>
+                    <h3>今月のサブスク</h3>
                     <div class="amount subscription" id="monthlySubscription">¥0</div>
                 </div>
                 <div class="summary-card">
@@ -539,54 +491,45 @@
             <!-- サブスク管理画面 -->
             <div id="subscriptionScreen" class="screen">
                 <button class="back-btn" onclick="showScreen('main')">← メインに戻る</button>
-                <h2>サブスク管理</h2>
-                
-                <div id="subscriptionNotifications"></div>
+                <h2>サブスクリプション管理</h2>
                 
                 <form id="subscriptionForm">
-                    <h3>新しいサブスクリプション</h3>
-                    
                     <div class="form-group">
                         <label for="subName">サービス名 *</label>
-                        <input type="text" id="subName" required placeholder="例: Netflix, Spotify">
+                        <input type="text" id="subName" required placeholder="Netflix、Spotify など">
                     </div>
                     
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label for="subAmount">月額料金 *</label>
-                            <input type="number" id="subAmount" required min="0" step="1">
-                        </div>
-                        <div class="form-group">
-                            <label for="subCategory">カテゴリ *</label>
-                            <select id="subCategory" required>
-                                <option value="">カテゴリを選択</option>
-                            </select>
-                        </div>
+                    <div class="form-group">
+                        <label for="subAmount">月額料金 *</label>
+                        <input type="number" id="subAmount" required min="0" step="1">
                     </div>
                     
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label for="subStartDate">開始日 *</label>
-                            <input type="date" id="subStartDate" required>
-                        </div>
-                        <div class="form-group">
-                            <label for="subCycle">支払い周期 *</label>
-                            <select id="subCycle" required>
-                                <option value="monthly">月次</option>
-                                <option value="yearly">年次</option>
-                            </select>
-                        </div>
+                    <div class="form-group">
+                        <label for="subCategory">カテゴリ *</label>
+                        <select id="subCategory" required>
+                            <option value="">カテゴリを選択</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="subStartDate">開始日 *</label>
+                        <input type="date" id="subStartDate" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="subBillingDay">請求日 *</label>
+                        <input type="number" id="subBillingDay" required min="1" max="31" placeholder="毎月の請求日（1-31）">
                     </div>
                     
                     <div class="form-group">
                         <label for="subMemo">メモ</label>
-                        <textarea id="subMemo" rows="2" placeholder="サブスクの詳細など"></textarea>
+                        <textarea id="subMemo" rows="3" placeholder="任意でメモを入力"></textarea>
                     </div>
                     
                     <button type="submit" class="btn">サブスク登録</button>
                 </form>
                 
-                <div id="subscriptionList"></div>
+                <div class="subscription-list" id="subscriptionList"></div>
             </div>
 
             <!-- カテゴリ管理画面 -->
@@ -638,7 +581,7 @@
                         <div class="amount expense" id="reportExpense">¥0</div>
                     </div>
                     <div class="summary-card">
-                        <h3>サブスク支出</h3>
+                        <h3>期間サブスク</h3>
                         <div class="amount subscription" id="reportSubscription">¥0</div>
                     </div>
                     <div class="summary-card">
@@ -663,10 +606,11 @@
         document.addEventListener('DOMContentLoaded', function() {
             loadData();
             initializeDateInputs();
+            processSubscriptions();
             updateMonthlySummary();
             renderCategories();
+            renderSubscriptions();
             updateCategorySelects();
-            processSubscriptions();
             showScreen('main');
         });
 
@@ -681,7 +625,7 @@
                 { id: '2', name: '食費', createdAt: new Date().toISOString() },
                 { id: '3', name: '交通費', createdAt: new Date().toISOString() },
                 { id: '4', name: '娯楽', createdAt: new Date().toISOString() },
-                { id: '5', name: 'サブスク', createdAt: new Date().toISOString() }
+                { id: '5', name: 'サブスクリプション', createdAt: new Date().toISOString() }
             ];
             
             transactions = savedTransactions;
@@ -708,6 +652,55 @@
             document.getElementById('endDate').value = today;
         }
 
+        // サブスクリプション処理
+        function processSubscriptions() {
+            const now = new Date();
+            const currentMonth = now.getMonth();
+            const currentYear = now.getFullYear();
+            
+            subscriptions.forEach(sub => {
+                if (!sub.active) return;
+                
+                const subStartDate = new Date(sub.startDate);
+                const subStartMonth = subStartDate.getMonth();
+                const subStartYear = subStartDate.getFullYear();
+                
+                // 開始日が現在より後なら処理しない
+                if (subStartYear > currentYear || (subStartYear === currentYear && subStartMonth > currentMonth)) {
+                    return;
+                }
+                
+                // 今月の請求日を計算
+                const billingDate = new Date(currentYear, currentMonth, sub.billingDay);
+                
+                // 既に今月のサブスク取引があるかチェック
+                const existingTransaction = transactions.find(trans => 
+                    trans.subscriptionId === sub.id && 
+                    trans.type === 'subscription' &&
+                    new Date(trans.date).getMonth() === currentMonth &&
+                    new Date(trans.date).getFullYear() === currentYear
+                );
+                
+                // 請求日が過ぎていて、まだ今月の取引がない場合
+                if (billingDate <= now && !existingTransaction) {
+                    const transaction = {
+                        id: Date.now().toString() + '_' + sub.id,
+                        amount: sub.amount,
+                        categoryId: sub.categoryId,
+                        date: billingDate.toISOString().split('T')[0],
+                        memo: `${sub.name} (自動生成)`,
+                        type: 'subscription',
+                        subscriptionId: sub.id,
+                        createdAt: new Date().toISOString()
+                    };
+                    
+                    transactions.push(transaction);
+                }
+            });
+            
+            saveData();
+        }
+
         // 画面表示切り替え
         function showScreen(screenName) {
             const screens = document.querySelectorAll('.screen');
@@ -717,15 +710,9 @@
             
             if (screenName === 'main') {
                 mainNav.style.display = 'grid';
-                checkUpcomingPayments();
             } else {
                 mainNav.style.display = 'none';
                 document.getElementById(screenName + 'Screen').classList.add('active');
-                
-                if (screenName === 'subscription') {
-                    renderSubscriptions();
-                    updateSubscriptionNotifications();
-                }
             }
         }
 
@@ -734,132 +721,6 @@
             currentTransactionType = type;
             document.getElementById('incomeBtn').classList.toggle('active', type === 'income');
             document.getElementById('expenseBtn').classList.toggle('active', type === 'expense');
-        }
-
-        // サブスク処理
-        function processSubscriptions() {
-            const today = new Date();
-            
-            subscriptions.forEach(subscription => {
-                if (!subscription.isActive) return;
-                
-                const startDate = new Date(subscription.startDate);
-                const nextPaymentDate = getNextPaymentDate(subscription);
-                
-                // 今日が支払日の場合、自動で取引を作成
-                if (isSameDay(today, nextPaymentDate)) {
-                    createSubscriptionTransaction(subscription);
-                }
-            });
-        }
-
-        // 次回支払日の計算
-        function getNextPaymentDate(subscription) {
-            const startDate = new Date(subscription.startDate);
-            const today = new Date();
-            
-            if (subscription.cycle === 'monthly') {
-                let nextDate = new Date(startDate);
-                while (nextDate <= today) {
-                    nextDate.setMonth(nextDate.getMonth() + 1);
-                }
-                return nextDate;
-            } else if (subscription.cycle === 'yearly') {
-                let nextDate = new Date(startDate);
-                while (nextDate <= today) {
-                    nextDate.setFullYear(nextDate.getFullYear() + 1);
-                }
-                return nextDate;
-            }
-            
-            return startDate;
-        }
-
-        // 日付比較
-        function isSameDay(date1, date2) {
-            return date1.getFullYear() === date2.getFullYear() &&
-                   date1.getMonth() === date2.getMonth() &&
-                   date1.getDate() === date2.getDate();
-        }
-
-        // サブスク取引の作成
-        function createSubscriptionTransaction(subscription) {
-            const transaction = {
-                id: Date.now().toString(),
-                amount: subscription.amount,
-                categoryId: subscription.categoryId,
-                date: new Date().toISOString().split('T')[0],
-                memo: `${subscription.name} (自動登録)`,
-                type: 'expense',
-                isSubscription: true,
-                subscriptionId: subscription.id,
-                createdAt: new Date().toISOString()
-            };
-            
-            // 同じ日に同じサブスクの取引が既にあるかチェック
-            const existingTransaction = transactions.find(trans => 
-                trans.subscriptionId === subscription.id &&
-                trans.date === transaction.date
-            );
-            
-            if (!existingTransaction) {
-                transactions.push(transaction);
-                saveData();
-                updateMonthlySummary();
-            }
-        }
-
-        // 今後の支払いチェック
-        function checkUpcomingPayments() {
-            const today = new Date();
-            const threeDaysFromNow = new Date(today);
-            threeDaysFromNow.setDate(today.getDate() + 3);
-            
-            const upcomingPayments = subscriptions.filter(sub => {
-                if (!sub.isActive) return false;
-                const nextPayment = getNextPaymentDate(sub);
-                return nextPayment >= today && nextPayment <= threeDaysFromNow;
-            });
-            
-            if (upcomingPayments.length > 0) {
-                showUpcomingPaymentsNotification(upcomingPayments);
-            }
-        }
-
-        // 支払い予定通知
-        function showUpcomingPaymentsNotification(payments) {
-            const notifications = document.getElementById('subscriptionNotifications');
-            if (!notifications) return;
-            
-            notifications.innerHTML = '';
-            
-            payments.forEach(payment => {
-                const nextPayment = getNextPaymentDate(payment);
-                const daysUntil = Math.ceil((nextPayment - new Date()) / (1000 * 60 * 60 * 24));
-                
-                const notification = document.createElement('div');
-                notification.className = 'notification warning';
-                notification.innerHTML = `
-                    <strong>${payment.name}</strong> の支払いが${daysUntil}日後（${nextPayment.toLocaleDateString('ja-JP')}）に予定されています。
-                    金額: ¥${payment.amount.toLocaleString()}
-                `;
-                notifications.appendChild(notification);
-            });
-        }
-
-        // サブスク通知更新
-        function updateSubscriptionNotifications() {
-            const today = new Date();
-            const threeDaysFromNow = new Date(today);
-            threeDaysFromNow.setDate(today.getDate() + 3);
-            
-            const upcomingPayments = subscriptions.filter(sub => {
-                if (!sub.isActive) return false;
-                const nextPayment = getNextPaymentDate(sub);
-                return nextPayment >= today && nextPayment <= threeDaysFromNow;
-            });
-            
-            showUpcomingPaymentsNotification(upcomingPayments);
         }
 
         // カテゴリ追加
@@ -893,6 +754,7 @@
                 subscriptions = subscriptions.filter(sub => sub.categoryId !== categoryId);
                 saveData();
                 renderCategories();
+                renderSubscriptions();
                 updateCategorySelects();
                 updateMonthlySummary();
             }
@@ -914,6 +776,67 @@
             });
         }
 
+        // サブスク表示
+        function renderSubscriptions() {
+            const subscriptionList = document.getElementById('subscriptionList');
+            subscriptionList.innerHTML = '';
+            
+            if (subscriptions.length === 0) {
+                subscriptionList.innerHTML = '<div class="no-transactions">サブスクリプションがありません</div>';
+                return;
+            }
+            
+            subscriptions.forEach(sub => {
+                const categoryName = categories.find(cat => cat.id === sub.categoryId)?.name || '不明';
+                const subscriptionItem = document.createElement('div');
+                subscriptionItem.className = 'subscription-item';
+                subscriptionItem.innerHTML = `
+                    <div class="subscription-header">
+                        <div class="subscription-name">${sub.name}</div>
+                        <div class="subscription-amount">¥${sub.amount.toLocaleString()}/月</div>
+                    </div>
+                    <div class="subscription-details">
+                        <div>カテゴリ: ${categoryName}</div>
+                        <div>請求日: 毎月${sub.billingDay}日</div>
+                        <div>開始日: ${sub.startDate}</div>
+                        ${sub.memo ? `<div>メモ: ${sub.memo}</div>` : ''}
+                    </div>
+                    <div class="subscription-actions">
+                        <span class="status-badge ${sub.active ? 'status-active' : 'status-inactive'}">
+                            ${sub.active ? 'アクティブ' : '停止中'}
+                        </span>
+                        <button class="btn btn-warning btn-small" onclick="toggleSubscription('${sub.id}')">
+                            ${sub.active ? '停止' : '再開'}
+                        </button>
+                        <button class="btn btn-danger btn-small" onclick="deleteSubscription('${sub.id}')">削除</button>
+                    </div>
+                `;
+                subscriptionList.appendChild(subscriptionItem);
+            });
+        }
+
+        // サブスク切り替え
+        function toggleSubscription(subscriptionId) {
+            const subscription = subscriptions.find(sub => sub.id === subscriptionId);
+            if (subscription) {
+                subscription.active = !subscription.active;
+                saveData();
+                renderSubscriptions();
+                updateMonthlySummary();
+            }
+        }
+
+        // サブスク削除
+        function deleteSubscription(subscriptionId) {
+            if (confirm('このサブスクリプションを削除しますか？関連する取引も削除されます。')) {
+                subscriptions = subscriptions.filter(sub => sub.id !== subscriptionId);
+                transactions = transactions.filter(trans => trans.subscriptionId !== subscriptionId);
+                saveData();
+                renderSubscriptions();
+                updateMonthlySummary();
+            }
+        }
+
         // カテゴリ選択肢更新
         function updateCategorySelects() {
             const categorySelect = document.getElementById('category');
@@ -921,7 +844,6 @@
             const filterCategorySelect = document.getElementById('filterCategory');
             
             [categorySelect, subCategorySelect, filterCategorySelect].forEach(select => {
-                if (!select) return;
                 const currentValue = select.value;
                 
                 if (select.id === 'category') {
@@ -943,136 +865,6 @@
             });
         }
 
-        // サブスク表示
-        function renderSubscriptions() {
-            const subscriptionList = document.getElementById('subscriptionList');
-            subscriptionList.innerHTML = '<h3>登録済みサブスクリプション</h3>';
-            
-            if (subscriptions.length === 0) {
-                subscriptionList.innerHTML += '<div class="no-transactions">サブスクリプションが登録されていません</div>';
-                return;
-            }
-            
-            subscriptions.forEach(subscription => {
-                const categoryName = categories.find(cat => cat.id === subscription.categoryId)?.name || '不明';
-                const nextPayment = getNextPaymentDate(subscription);
-                const daysUntil = Math.ceil((nextPayment - new Date()) / (1000 * 60 * 60 * 24));
-                
-                const subscriptionItem = document.createElement('div');
-                subscriptionItem.className = `subscription-item ${subscription.isActive ? 'active' : 'inactive'}`;
-                subscriptionItem.innerHTML = `
-                    <div class="subscription-header">
-                        <div class="subscription-name">${subscription.name}</div>
-                        <div class="subscription-amount">¥${subscription.amount.toLocaleString()}</div>
-                    </div>
-                    <div class="subscription-details">
-                        <div class="subscription-detail">
-                            <strong>カテゴリ:</strong> ${categoryName}
-                        </div>
-                        <div class="subscription-detail">
-                            <strong>支払い周期:</strong> ${subscription.cycle === 'monthly' ? '月次' : '年次'}
-                        </div>
-                        <div class="subscription-detail">
-                            <strong>開始日:</strong> ${new Date(subscription.startDate).toLocaleDateString('ja-JP')}
-                        </div>
-                        <div class="subscription-detail">
-                            <strong>ステータス:</strong> 
-                            <span class="status-badge ${subscription.isActive ? 'status-active' : 'status-inactive'}">
-                                ${subscription.isActive ? 'アクティブ' : '停止中'}
-                            </span>
-                        </div>
-                    </div>
-                    ${subscription.memo ? `<div class="subscription-detail" style="margin-top: 10px;"><strong>メモ:</strong> ${subscription.memo}</div>` : ''}
-                    ${subscription.isActive ? `
-                        <div class="next-payment">
-                            <strong>次回支払い:</strong> ${nextPayment.toLocaleDateString('ja-JP')} (${daysUntil}日後)
-                        </div>
-                    ` : ''}
-                    <div class="subscription-actions">
-                        <button class="btn btn-small ${subscription.isActive ? 'btn-warning' : 'btn-success'}" 
-                                onclick="toggleSubscription('${subscription.id}')">
-                            ${subscription.isActive ? '停止' : '再開'}
-                        </button>
-                        <button class="btn btn-small btn-secondary" onclick="editSubscription('${subscription.id}')">編集</button>
-                        <button class="btn btn-small btn-danger" onclick="deleteSubscription('${subscription.id}')">削除</button>
-                    </div>
-                `;
-                subscriptionList.appendChild(subscriptionItem);
-            });
-        }
-
-        // サブスク状態切り替え
-        function toggleSubscription(subscriptionId) {
-            const subscription = subscriptions.find(sub => sub.id === subscriptionId);
-            if (subscription) {
-                subscription.isActive = !subscription.isActive;
-                saveData();
-                renderSubscriptions();
-                updateMonthlySummary();
-            }
-        }
-
-        // サブスク編集
-        function editSubscription(subscriptionId) {
-            const subscription = subscriptions.find(sub => sub.id === subscriptionId);
-            if (!subscription) return;
-            
-            // フォームに既存の値を設定
-            document.getElementById('subName').value = subscription.name;
-            document.getElementById('subAmount').value = subscription.amount;
-            document.getElementById('subCategory').value = subscription.categoryId;
-            document.getElementById('subStartDate').value = subscription.startDate;
-            document.getElementById('subCycle').value = subscription.cycle;
-            document.getElementById('subMemo').value = subscription.memo || '';
-            
-            // 編集モードに設定
-            const form = document.getElementById('subscriptionForm');
-            form.dataset.editingId = subscriptionId;
-            
-            const submitBtn = form.querySelector('button[type="submit"]');
-            submitBtn.textContent = '更新';
-            submitBtn.className = 'btn btn-warning';
-            
-            // キャンセルボタン追加
-            if (!form.querySelector('.cancel-edit-btn')) {
-                const cancelBtn = document.createElement('button');
-                cancelBtn.type = 'button';
-                cancelBtn.className = 'btn btn-secondary cancel-edit-btn';
-                cancelBtn.textContent = 'キャンセル';
-                cancelBtn.onclick = cancelEditSubscription;
-                submitBtn.parentNode.insertBefore(cancelBtn, submitBtn.nextSibling);
-            }
-        }
-
-        // サブスク編集キャンセル
-        function cancelEditSubscription() {
-            const form = document.getElementById('subscriptionForm');
-            form.reset();
-            delete form.dataset.editingId;
-            
-            const submitBtn = form.querySelector('button[type="submit"]');
-            submitBtn.textContent = 'サブスク登録';
-            submitBtn.className = 'btn';
-            
-            const cancelBtn = form.querySelector('.cancel-edit-btn');
-            if (cancelBtn) {
-                cancelBtn.remove();
-            }
-            
-            initializeDateInputs();
-        }
-
-        // サブスク削除
-        function deleteSubscription(subscriptionId) {
-            if (confirm('このサブスクリプションを削除しますか？関連する取引も削除されます。')) {
-                subscriptions = subscriptions.filter(sub => sub.id !== subscriptionId);
-                transactions = transactions.filter(trans => trans.subscriptionId !== subscriptionId);
-                saveData();
-                renderSubscriptions();
-                updateMonthlySummary();
-            }
-        }
-
         // 取引削除
         function deleteTransaction(transactionId) {
             if (confirm('この取引を削除しますか？')) {
@@ -1083,63 +875,6 @@
                 alert('取引が削除されました');
             }
         }
-
-        // サブスクフォーム送信
-        document.getElementById('subscriptionForm').addEventListener('submit', function(e) {
-            e.preventDefault();
-            
-            const name = document.getElementById('subName').value.trim();
-            const amount = parseFloat(document.getElementById('subAmount').value);
-            const categoryId = document.getElementById('subCategory').value;
-            const startDate = document.getElementById('subStartDate').value;
-            const cycle = document.getElementById('subCycle').value;
-            const memo = document.getElementById('subMemo').value.trim();
-            
-            if (!name || !amount || !categoryId || !startDate) {
-                alert('必須項目を入力してください');
-                return;
-            }
-            
-            const editingId = this.dataset.editingId;
-            
-            if (editingId) {
-                // 編集モード
-                const subscription = subscriptions.find(sub => sub.id === editingId);
-                if (subscription) {
-                    subscription.name = name;
-                    subscription.amount = amount;
-                    subscription.categoryId = categoryId;
-                    subscription.startDate = startDate;
-                    subscription.cycle = cycle;
-                    subscription.memo = memo;
-                    subscription.updatedAt = new Date().toISOString();
-                }
-                cancelEditSubscription();
-            } else {
-                // 新規登録
-                const subscription = {
-                    id: Date.now().toString(),
-                    name: name,
-                    amount: amount,
-                    categoryId: categoryId,
-                    startDate: startDate,
-                    cycle: cycle,
-                    memo: memo,
-                    isActive: true,
-                    createdAt: new Date().toISOString()
-                };
-                
-                subscriptions.push(subscription);
-                this.reset();
-                initializeDateInputs();
-            }
-            
-            saveData();
-            renderSubscriptions();
-            updateMonthlySummary();
-            updateSubscriptionNotifications();
-            alert(editingId ? 'サブスクリプションが更新されました' : 'サブスクリプションが登録されました');
-        });
 
         // 取引フォーム送信
         document.getElementById('transactionForm').addEventListener('submit', function(e) {
@@ -1162,7 +897,6 @@
                 date: date,
                 memo: memo,
                 type: currentTransactionType,
-                isSubscription: false,
                 createdAt: new Date().toISOString()
             };
             
@@ -1171,10 +905,56 @@
             updateMonthlySummary();
             
             // フォームリセット
-            this.reset();
+            document.getElementById('transactionForm').reset();
             document.getElementById('date').value = new Date().toISOString().split('T')[0];
             
             alert('取引が登録されました');
+        });
+
+        // サブスクフォーム送信
+        document.getElementById('subscriptionForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const name = document.getElementById('subName').value.trim();
+            const amount = parseFloat(document.getElementById('subAmount').value);
+            const categoryId = document.getElementById('subCategory').value;
+            const startDate = document.getElementById('subStartDate').value;
+            const billingDay = parseInt(document.getElementById('subBillingDay').value);
+            const memo = document.getElementById('subMemo').value;
+            
+            if (!name || !amount || !categoryId || !startDate || !billingDay) {
+                alert('必須項目を入力してください');
+                return;
+            }
+            
+            if (billingDay < 1 || billingDay > 31) {
+                alert('請求日は1-31の範囲で入力してください');
+                return;
+            }
+            
+            const subscription = {
+                id: Date.now().toString(),
+                name: name,
+                amount: amount,
+                categoryId: categoryId,
+                startDate: startDate,
+                billingDay: billingDay,
+                memo: memo,
+                active: true,
+                createdAt: new Date().toISOString()
+            };
+            
+            subscriptions.push(subscription);
+            saveData();
+            processSubscriptions();
+            updateMonthlySummary();
+            renderSubscriptions();
+            
+            // フォームリセット
+            document.getElementById('subscriptionForm').reset();
+            document.getElementById('subStartDate').value = new Date().toISOString().split('T')[0];
+            
+            alert('サブスクリプションが登録されました');
         });
 
         // 月次サマリー更新
@@ -1196,22 +976,15 @@
                 .filter(trans => trans.type === 'expense')
                 .reduce((sum, trans) => sum + trans.amount, 0);
             
-            // アクティブな月次サブスクの合計
-            const monthlySubscriptionTotal = subscriptions
-                .filter(sub => sub.isActive && sub.cycle === 'monthly')
-                .reduce((sum, sub) => sum + sub.amount, 0);
+            const subscription = monthlyTransactions
+                .filter(trans => trans.type === 'subscription')
+                .reduce((sum, trans) => sum + trans.amount, 0);
             
-            // 年次サブスクの月割り
-            const yearlySubscriptionMonthly = subscriptions
-                .filter(sub => sub.isActive && sub.cycle === 'yearly')
-                .reduce((sum, sub) => sum + (sub.amount / 12), 0);
-            
-            const totalSubscription = monthlySubscriptionTotal + yearlySubscriptionMonthly;
-            const balance = income - expense;
+            const balance = income - expense - subscription;
             
             document.getElementById('monthlyIncome').textContent = `¥${income.toLocaleString()}`;
             document.getElementById('monthlyExpense').textContent = `¥${expense.toLocaleString()}`;
-            document.getElementById('monthlySubscription').textContent = `¥${Math.round(totalSubscription).toLocaleString()}`;
+            document.getElementById('monthlySubscription').textContent = `¥${subscription.toLocaleString()}`;
             document.getElementById('monthlyBalance').textContent = `¥${balance.toLocaleString()}`;
         }
 
@@ -1243,15 +1016,15 @@
                 .filter(trans => trans.type === 'expense')
                 .reduce((sum, trans) => sum + trans.amount, 0);
             
-            const subscriptionExpense = filteredTransactions
-                .filter(trans => trans.isSubscription)
+            const subscription = filteredTransactions
+                .filter(trans => trans.type === 'subscription')
                 .reduce((sum, trans) => sum + trans.amount, 0);
             
-            const balance = income - expense;
+            const balance = income - expense - subscription;
             
             document.getElementById('reportIncome').textContent = `¥${income.toLocaleString()}`;
             document.getElementById('reportExpense').textContent = `¥${expense.toLocaleString()}`;
-            document.getElementById('reportSubscription').textContent = `¥${subscriptionExpense.toLocaleString()}`;
+            document.getElementById('reportSubscription').textContent = `¥${subscription.toLocaleString()}`;
             document.getElementById('reportBalance').textContent = `¥${balance.toLocaleString()}`;
             
             document.getElementById('reportSummary').style.display = 'grid';
@@ -1270,18 +1043,32 @@
             filteredTransactions.forEach(trans => {
                 const categoryName = categories.find(cat => cat.id === trans.categoryId)?.name || '不明';
                 const transactionItem = document.createElement('div');
-                transactionItem.className = `transaction-item ${trans.type} ${trans.isSubscription ? 'subscription' : ''}`;
+                transactionItem.className = `transaction-item ${trans.type}`;
+                
+                let typeText = '';
+                let amountPrefix = '';
+                if (trans.type === 'income') {
+                    typeText = '収入';
+                    amountPrefix = '+';
+                } else if (trans.type === 'expense') {
+                    typeText = '支出';
+                    amountPrefix = '-';
+                } else if (trans.type === 'subscription') {
+                    typeText = 'サブスク';
+                    amountPrefix = '-';
+                }
+                
                 transactionItem.innerHTML = `
                     <div class="transaction-info">
                         <div class="transaction-date">${trans.date}</div>
-                        <div>${categoryName}${trans.isSubscription ? ' (サブスク)' : ''}</div>
+                        <div>${categoryName} (${typeText})</div>
                         ${trans.memo ? `<div style="color: #666; font-size: 0.9em;">${trans.memo}</div>` : ''}
                     </div>
                     <div class="transaction-actions">
                         <div class="transaction-amount ${trans.type}">
-                            ${trans.type === 'income' ? '+' : '-'}¥${trans.amount.toLocaleString()}
+                            ${amountPrefix}¥${trans.amount.toLocaleString()}
                         </div>
-                        <button class="btn btn-danger btn-small" onclick="deleteTransaction('${trans.id}')">削除</button>
+                        ${trans.type !== 'subscription' ? `<button class="btn btn-danger btn-small" onclick="deleteTransaction('${trans.id}')">削除</button>` : ''}
                     </div>
                 `;
                 reportTransactions.appendChild(transactionItem);
