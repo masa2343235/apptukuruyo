@@ -363,9 +363,6 @@
             <button class="nav-btn" onclick="showScreen('report')">
                 📊 レポート表示
             </button>
-            <button class="nav-btn" onclick="exportData()">
-                💾 データエクスポート
-            </button>
         </div>
 
         <div class="content">
@@ -745,26 +742,6 @@
                 `;
                 reportTransactions.appendChild(transactionItem);
             });
-        }
-
-        // データエクスポート
-        function exportData() {
-            const data = {
-                categories: categories,
-                transactions: transactions,
-                exportDate: new Date().toISOString()
-            };
-            
-            const dataStr = JSON.stringify(data, null, 2);
-            const dataBlob = new Blob([dataStr], { type: 'application/json' });
-            const url = URL.createObjectURL(dataBlob);
-            
-            const link = document.createElement('a');
-            link.href = url;
-            link.download = `家計簿データ_${new Date().toISOString().split('T')[0]}.json`;
-            link.click();
-            
-            URL.revokeObjectURL(url);
         }
     </script>
 </body>
